@@ -1,0 +1,12 @@
+# Smart Energy AI — runtime dependencies for Flask API + Streamlit UI
+flask>=3.0.0
+streamlit>=1.28.0
+numpy>=1.23.0
+pandas>=1.5.0
+scikit-learn>=1.3.0
+tensorflow>=2.14.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+groq>=0.4.0
+mysql-connector-python>=8.0.0
+matplotlib>=3.7.0
