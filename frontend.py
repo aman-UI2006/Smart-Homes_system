@@ -7,19 +7,14 @@ import numpy as np
 import pandas as pd
 
 st.set_page_config(
-    page_title="Energy Forecast · Dashboard",
+    page_title="Smart Energy Forecast For Smart Homes dashboard",
     layout="wide",
     initial_sidebar_state="collapsed",
     page_icon=":material/monitoring:",
 )
 
-try:
-    _IS_DARK = st.context.theme.type == "dark"
-except Exception:
-    _IS_DARK = False
-
 # -------------------------------
-# Design tokens & global stylesheet (Light / Dark aware)
+# Design tokens & global stylesheet (light / white background)
 # -------------------------------
 _ROOT_LIGHT = """
     :root {
@@ -49,40 +44,13 @@ _ROOT_LIGHT = """
     }
 """
 
-_ROOT_DARK = """
-    :root {
-        --bg-page: #161b22;
-        --bg-subtle: #21262d;
-        --border: #30363d;
-        --border-strong: #484f58;
-        --text: #f0f6fc;
-        --text-muted: #8b949e;
-        --text-soft: #c9d1d9;
-        --primary: #f0f6fc;
-        --primary-hover: #ffffff;
-        --primary-ring: rgba(240, 246, 252, 0.25);
-        --accent-indigo: #818cf8;
-        --ok: #3fb950;
-        --warn: #d29922;
-        --bad: #f85149;
-        --upload-btn-fg: #f0f6fc;
-        --upload-btn-bg: #30363d;
-        --upload-btn-border: #6e7681;
-        --upload-hover-bg: rgba(56, 139, 253, 0.12);
-        --upload-hover-border: rgba(56, 139, 253, 0.45);
-        --header-bg: rgba(13, 17, 23, 0.92);
-        --hero-surface: linear-gradient(135deg, #21262d 0%, #161b22 50%, #1c2128 100%);
-        --hero-badge-bg: rgba(129, 140, 248, 0.15);
-        --hero-badge-border: rgba(129, 140, 248, 0.4);
-    }
-"""
-
 _CONTAINER_LIGHT = """
     [data-testid="stAppViewContainer"] {
         position: relative !important;
         overflow: auto !important;
         color-scheme: light;
         background: #ffffff !important;
+        background-color: #ffffff !important;
         background-size: auto !important;
         animation: none !important;
     }
@@ -90,57 +58,13 @@ _CONTAINER_LIGHT = """
     [data-testid="stAppViewContainer"]::after {
         display: none !important;
     }
-"""
-
-_CONTAINER_DARK = """
-    [data-testid="stAppViewContainer"] {
-        position: relative !important;
-        overflow: auto !important;
-        color-scheme: dark;
-        background: linear-gradient(
-            125deg,
-            #0d1117,
-            #161b22,
-            #1c2128,
-            #0d1117,
-            #010409
-        ) !important;
-        background-size: 400% 400% !important;
-        animation: bg-gradient-flow 25s ease-in-out infinite !important;
+    section.main {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
     }
-    [data-testid="stAppViewContainer"]::before {
-        content: "";
-        position: absolute;
-        inset: -35%;
-        min-height: 120%;
-        z-index: 0;
-        pointer-events: none;
-        opacity: 0.9;
-        background:
-            radial-gradient(ellipse 50% 42% at 15% 25%, rgba(99, 102, 241, 0.12) 0%, transparent 52%),
-            radial-gradient(ellipse 48% 46% at 88% 78%, rgba(56, 139, 253, 0.08) 0%, transparent 50%),
-            radial-gradient(ellipse 42% 48% at 55% 8%, rgba(139, 148, 158, 0.1) 0%, transparent 48%);
-        animation: bg-drift 28s ease-in-out infinite;
-        will-change: transform;
-    }
-    [data-testid="stAppViewContainer"]::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        min-height: 100%;
-        z-index: 0;
-        pointer-events: none;
-        opacity: 0.25;
-        mix-blend-mode: lighten;
-        background:
-            linear-gradient(
-                105deg,
-                transparent 0%,
-                rgba(255, 255, 255, 0.06) 50%,
-                transparent 100%
-            );
-        background-size: 200% 200%;
-        animation: bg-shimmer-slide 12s linear infinite;
+    [data-testid="stMain"] {
+        background: #ffffff !important;
+        background-color: #ffffff !important;
     }
 """
 
@@ -155,26 +79,6 @@ _THEME_STYLE_REST = """
     }
 
     /* Streamlit widgets keep theme contrast; custom sections use :root vars above */
-
-    @keyframes bg-gradient-flow {
-        0% { background-position: 0% 40%; }
-        25% { background-position: 100% 60%; }
-        50% { background-position: 100% 40%; }
-        75% { background-position: 0% 60%; }
-        100% { background-position: 0% 40%; }
-    }
-
-    @keyframes bg-drift {
-        0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.6; }
-        25% { transform: translate(6%, -4%) rotate(1deg) scale(1.06); opacity: 0.85; }
-        50% { transform: translate(-4%, 5%) rotate(-0.5deg) scale(1.04); opacity: 0.7; }
-        75% { transform: translate(3%, 3%) rotate(0.5deg) scale(1.05); opacity: 0.8; }
-    }
-
-    @keyframes bg-shimmer-slide {
-        0% { background-position: 0% 0%; }
-        100% { background-position: 200% 200%; }
-    }
 
     ___CONTAINER_BG___
 
@@ -481,8 +385,8 @@ _THEME_STYLE_REST = """
 """
 
 st.markdown(
-    _THEME_STYLE_REST.replace("___ROOT_VARS___", _ROOT_DARK if _IS_DARK else _ROOT_LIGHT).replace(
-        "___CONTAINER_BG___", _CONTAINER_DARK if _IS_DARK else _CONTAINER_LIGHT
+    _THEME_STYLE_REST.replace("___ROOT_VARS___", _ROOT_LIGHT).replace(
+        "___CONTAINER_BG___", _CONTAINER_LIGHT
     ),
     unsafe_allow_html=True,
 )
@@ -494,7 +398,7 @@ st.markdown(
     """
 <div class="app-hero">
     <div class="app-hero-badge">Operations</div>
-    <h1>Energy forecast dashboard</h1>
+    <h1>Smart Energy Forecast For Smart Homes dashboard</h1>
     <p>Hourly load inputs, forecast output, and optimization guidance for grid operations teams.</p>
 </div>
 """,
@@ -573,24 +477,14 @@ st.session_state.energy_values = values
 st.markdown('<p class="section-label">Load profile</p>', unsafe_allow_html=True)
 
 mpl.rcParams["font.family"] = ["DM Sans", "DejaVu Sans", "sans-serif"]
-if _IS_DARK:
-    chart_bg = "#0d1117"
-    plot_fill = "#161b22"
-    accent = "#818cf8"
-    accent_soft = "#a5b4fc"
-    grid_c = "#30363d"
-    label_c = "#e6edf3"
-    spine_c = "#484f58"
-else:
-    chart_bg = "#ffffff"
-    plot_fill = "#f8fafc"
-    accent = "#4f46e5"
-    accent_soft = "#6366f1"
-    grid_c = "#e2e8f0"
-    label_c = "#0f172a"
-    spine_c = "#334155"
-
-_pt_face = "#ffffff" if not _IS_DARK else "#21262d"
+chart_bg = "#ffffff"
+plot_fill = "#f8fafc"
+accent = "#4f46e5"
+accent_soft = "#6366f1"
+grid_c = "#e2e8f0"
+label_c = "#0f172a"
+spine_c = "#334155"
+_pt_face = "#ffffff"
 
 fig, ax = plt.subplots(figsize=(10, 4.2), facecolor=chart_bg)
 ax.set_facecolor(plot_fill)

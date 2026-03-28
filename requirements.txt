@@ -1,5 +1,11 @@
 # Smart Energy AI — runtime dependencies for Flask API + Streamlit UI
+#
+# TensorFlow has no wheels for Python 3.14+. Pin Python with .python-version (Render)
+# or set env PYTHON_VERSION=3.11.9 on the service. See https://render.com/docs/python-version
+#
+# gunicorn: required for Render / Procfile
 flask>=3.0.0
+gunicorn>=22.0.0
 streamlit>=1.28.0
 numpy>=1.23.0
 pandas>=1.5.0
