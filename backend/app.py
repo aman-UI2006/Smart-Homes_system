@@ -131,6 +131,10 @@ def predict():
         if input_data is None:
             return jsonify({"error": "Missing 'input'"}), 400
 
+        input_data = input_data[:5]
+        if len(input_data) < 5:
+            return jsonify({"error": "At least 5 input values required"}), 400
+
         input_data = np.array(input_data, dtype=float).reshape(1, -1)
         print("Model input:", input_data)
         print("Input shape:", input_data.shape)
@@ -160,6 +164,10 @@ def optimize():
             return jsonify({"error": "Missing 'input'"}), 400
 
         appliance_data = body.get("appliances") or {}
+
+        input_data = input_data[:5]
+        if len(input_data) < 5:
+            return jsonify({"error": "At least 5 input values required"}), 400
 
         input_data = np.array(input_data, dtype=float).reshape(1, -1)
         print("Model input:", input_data)
