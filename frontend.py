@@ -1,4 +1,5 @@
 import html
+import time
 import streamlit as st
 import requests
 import matplotlib.pyplot as plt
@@ -558,33 +559,82 @@ ai_suggestion = None
 
 with col1:
     if st.button("Generate forecast", use_container_width=True):
-        try:
-            res = requests.post(
-                f"{API_URL}/predict",
-                json={"input": values},
-                timeout=60,
-            )
-            res.raise_for_status()
-            prediction = res.json()["prediction_MW"]
-        except Exception:
-            st.error("Could not reach the forecast service.")
+        payload = {"input": values}
+        st.write("Sending:", payload)
+        st.write("URL:", API_URL)
+        
+        with st.spinner("Processing..."):
+            try:
+                retries = 3
+                for attempt in range(retries):
+                    try:
+                        res = requests.post(
+                            f"{API_URL}/predict",
+                            json=payload,
+                            timeout=120,
+                        )
+                        break
+                    except requests.exceptions.RequestException as e:
+                        if attempt < retries - 1:
+                            time.sleep(2)
+                            continue
+                        raise e
+                
+                st.write("Status:", res.status_code)
+                st.write("Response:", res.text)
+                
+                if res.status_code == 200:
+                    data = res.json()
+                    st.success(data)
+                    if "error" in data:
+                        st.error(f"Backend error: {data['error']}")
+                    else:
+                        prediction = data.get("prediction_MW")
+                else:
+                    st.error(f"Error {res.status_code}: {res.text}")
+            except Exception as e:
+                st.error(f"Connection failed: {e}")
 
 with col2:
     if st.button("Run optimization", use_container_width=True):
-        try:
-            res = requests.post(
-                f"{API_URL}/optimize",
-                json={"input": values, "appliances": appliances},
-                timeout=120,
-            )
-            res.raise_for_status()
-            data = res.json()
-            prediction = data["prediction_MW"]
-            status = data["status"]
-            suggestion = data["suggestion"]
-            ai_suggestion = data.get("ai_suggestion", "")
-        except Exception:
-            st.error("Could not reach the forecast service.")
+        payload = {"input": values, "appliances": appliances}
+        st.write("Sending:", payload)
+        st.write("URL:", API_URL)
+        
+        with st.spinner("Processing..."):
+            try:
+                retries = 3
+                for attempt in range(retries):
+                    try:
+                        res = requests.post(
+                            f"{API_URL}/optimize",
+                            json=payload,
+                            timeout=120,
+                        )
+                        break
+                    except requests.exceptions.RequestException as e:
+                        if attempt < retries - 1:
+                            time.sleep(2)
+                            continue
+                        raise e
+                
+                st.write("Status:", res.status_code)
+                st.write("Response:", res.text)
+                
+                if res.status_code == 200:
+                    data = res.json()
+                    st.success(data)
+                    if "error" in data:
+                        st.error(f"Backend error: {data['error']}")
+                    else:
+                        prediction = data.get("prediction_MW")
+                        status = data.get("status")
+                        suggestion = data.get("suggestion")
+                        ai_suggestion = data.get("ai_suggestion", "")
+                else:
+                    st.error(f"Error {res.status_code}: {res.text}")
+            except Exception as e:
+                st.error(f"Connection failed: {e}")
 
 # -------------------------------
 # KPI CARDS
@@ -642,14 +692,17 @@ st.markdown('<p class="section-label">History</p>', unsafe_allow_html=True)
 
 if st.button("Refresh history", use_container_width=True):
     try:
-        res = requests.get(f"{API_URL}/history", timeout=30)
-        res.raise_for_status()
-        data = res.json()
-
-        if len(data) == 0:
-            st.info("No saved forecasts yet.")
+        res = requests.get(f"{API_URL}/history", timeout=120)
+        if res.status_code == 200:
+            data = res.json()
+            if isinstance(data, dict) and "error" in data:
+                st.error(f"Backend error: {data['error']}")
+            elif len(data) == 0:
+                st.info("No saved forecasts yet.")
+            else:
+                st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
         else:
-            st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
+            st.error(f"Error {res.status_code}: {res.text}")
 
-    except Exception:
-        st.error("Could not load history from the API.")
+    except Exception as e:
+        st.error(f"Connection failed: {e}")

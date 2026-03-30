@@ -5,3 +5,10 @@ matplotlib
 numpy
 pandas
 scikit-learn
+flask
+Flask-Cors
+gunicorn
+tensorflow
+python-dotenv
+mysql-connector-python
+groq

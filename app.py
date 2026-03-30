@@ -7,6 +7,7 @@ from pathlib import Path
 import mysql.connector
 from flask import Flask, request, jsonify
 import numpy as np
+from flask_cors import CORS
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
@@ -21,6 +22,7 @@ client = Groq(api_key=os.getenv("GROQ_API_KEY") or "")
 # 2. Create Flask App
 # -------------------------------
 app = Flask(__name__)
+CORS(app)
 
 
 # -------------------------------
@@ -123,32 +125,48 @@ def _predict_mw(raw_input) -> float:
 def predict():
     try:
         body = request.get_json(silent=True) or {}
+        print("Incoming request:", body)
+        print("Headers:", request.headers)
         input_data = body.get("input")
         if input_data is None:
             return jsonify({"error": "Missing 'input'"}), 400
 
+        input_data = np.array(input_data, dtype=float).reshape(1, -1)
+        print("Model input:", input_data)
+        print("Input shape:", input_data.shape)
+
         pred_actual = _predict_mw(input_data)
+        pred_actual = float(pred_actual)
+
+        print("Prediction result:", pred_actual)
 
         return jsonify({
             'prediction_MW': pred_actual
         })
 
     except Exception as e:
-        return jsonify({'error': str(e)})
+        print(f"Error in /predict: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/optimize', methods=['POST'])
 def optimize():
     try:
         body = request.get_json(silent=True) or {}
+        print("Incoming request:", body)
+        print("Headers:", request.headers)
         input_data = body.get("input")
         if input_data is None:
             return jsonify({"error": "Missing 'input'"}), 400
 
         appliance_data = body.get("appliances") or {}
 
-        input_data = np.array(input_data, dtype=float).reshape(-1, 1)
-        pred_actual = _predict_mw(body["input"])
+        input_data = np.array(input_data, dtype=float).reshape(1, -1)
+        print("Model input:", input_data)
+        print("Input shape:", input_data.shape)
+
+        pred_actual = _predict_mw(input_data)
+        pred_actual = float(pred_actual)
 
         if pred_actual < 14000:
             status = "Low usage"
@@ -182,6 +200,8 @@ def optimize():
             except mysql.connector.Error:
                 pass
 
+        print("Prediction result:", pred_actual)
+        
         return jsonify({
             'prediction_MW': float(pred_actual),
             'status': status,
@@ -190,7 +210,8 @@ def optimize():
         })
 
     except Exception as e:
-        return jsonify({'error': str(e)})
+        print(f"Error in /optimize: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/history', methods=['GET'])
