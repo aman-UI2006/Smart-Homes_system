@@ -6,9 +6,8 @@ numpy
 pandas
 scikit-learn
 flask
-Flask-Cors
+flask-cors
 gunicorn
-tensorflow
 python-dotenv
 mysql-connector-python
 groq
